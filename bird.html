@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="pragma" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <title>Mnmoo - Raga Tunnel Game</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #e0f7fa, #80deea);
+            margin: 0;
+            padding: 20px;
+        }
+        #modeSelectionScreen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: linear-gradient(to bottom, #e0f7fa, #80deea);
+        }
+        #notationButtons {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        #notationButtons img {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #notationButtons img:hover {
+            transform: scale(1.1);
+        }
+        .selected {
+            border: 2px solid #0288d1;
+        }
+        #buttons {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        #buttons img {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        #buttons img:hover {
+            transform: scale(1.1);
+        }
+        #modeDescription {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #0277bd;
+            min-height: 24px; /* Prevents layout shift */
+        }
+        #gameContainer {
+            display: none;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            width: 90%;
+            max-width: 850px;
+            text-align: center;
+            position: relative;
+        }
+        #gameCanvas {
+            border: 2px solid #0288d1;
+            background-color: #87CEEB;
+            border-radius: 10px;
+        }
+        #calibrationMessage {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            z-index: 10;
+        }
+        h2 { color: #0277bd; margin-bottom: 15px; }
+        p { color: #555; margin: 10px 0; }
+    </style>
+    <script src="https://unpkg.com/aubiojs"></script>
+</head>
+<body>
+    <!-- Mode Selection Screen -->
+    <div id="modeSelectionScreen">
+        <img id="title" src="mnmoo.png" alt="Mnmoo">
+        <div id="notationButtons">
+            <img id="indianBtn" src="indian_notation.png" alt="Indian Notation" class="selected">
+            <img id="westernBtn" src="western_notation.png" alt="Western Notation">
+        </div>
+        <div id="buttons">
+            <img id="easyBtn" src="easy.png" alt="Easy">
+            <img id="normalBtn" src="normal.png" alt="Normal">
+            <img id="hardBtn" src="hard.png" alt="Hard">
+        </div>
+        <div id="modeDescription"></div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="calibrationMessage"></div>
+    </div>
+
+    <script>
+        // Define the raga with notes and semitone positions
+        const raga = {
+            notes: ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni", "Sa'"], // Default, will be updated
+            semitones: [0, 2, 4, 5, 7, 9, 11, 12]
+        };
+
+        // Game variables
+        let selectedNotation = 'indian'; // Default notation
+        let gameMode = null;
+        let state = 'countdown';
+        let currentPitch = null;
+        let lastPitch = null;
+        let smoothedPitch = null;
+        let pitchHistory = [];
+        let f0 = null;
+        let level = 1;
+        let sequence = getLevelSequence(level);
+        let bird = { x: 100, y: 300 };
+        let scrollX = 0;
+        let speed = 4;
+        let segmentWidth = 240;
+        let consecutiveCorrect = 0;
+        let previousSegment = -1;
+        let score = 0;
+        let coins = [];
+        let lastGeneratedSegment = -1;
+        let calibrationStartTime = null;
+        let pitchSamples = [];
+        const calibrationDuration = 5000;
+        let countdownStartTime = null;
+        const countdownMessages = ["Ready", "Set", "Go"];
+        let countdownIndex = 0;
+        let birdEating = false;
+        let birdEatTimer = null;
+        let audioContext;
+        let currentNote = null;
+        let noteEffects = [];
+        let lastEffectTime = 0;
+        const effectInterval = 500;
+
+        // Canvas setup
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const H = canvas.height;
+        const W = canvas.width;
+
+        // Preload images
+        const birdImg = new Image();
+        birdImg.src = 'bird.png';
+        const birdFlapImg = new Image();
+        birdFlapImg.src = 'birdflap.png';
+        const birdEatImg = new Image();
+        birdEatImg.src = 'birdeat.png';
+        const coinImg = new Image();
+        coinImg.src = 'coin.png';
+
+        // Mode descriptions
+        const descriptions = {
+            easy: "Easy mode: Lenient coin collection, great for beginners.",
+            normal: "Normal mode: Standard difficulty, a balanced challenge.",
+            hard: "Hard mode: Strict coin collection, for experienced players."
+        };
+
+        // Function to play blip sound
+        function playBlipSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.type = 'square';
+            oscillator.frequency.value = 800;
+            gainNode.gain.value = 0.1;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+
+        // Add hover effects to mode buttons
+        const modeButtons = document.querySelectorAll('#buttons img');
+        modeButtons.forEach(button => {
+            const mode = button.id.replace('Btn', '');
+            button.addEventListener('mouseover', () => {
+                if (!audioContext) {
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                playBlipSound();
+                document.getElementById('modeDescription').textContent = descriptions[mode];
+            });
+            button.addEventListener('mouseout', () => {
+                document.getElementById('modeDescription').textContent = '';
+            });
+        });
+
+        // Notation selection event listeners
+        document.getElementById('indianBtn').addEventListener('click', () => {
+            selectedNotation = 'indian';
+            document.getElementById('indianBtn').classList.add('selected');
+            document.getElementById('westernBtn').classList.remove('selected');
+        });
+
+        document.getElementById('westernBtn').addEventListener('click', () => {
+            selectedNotation = 'western';
+            document.getElementById('westernBtn').classList.add('selected');
+            document.getElementById('indianBtn').classList.remove('selected');
+        });
+
+        // Define level sequences based on selected notation
+        function getLevelSequence(level) {
+            if (level >= 1 && level <= 8) {
+                return [raga.notes[level - 1]];
+            } else {
+                return [raga.notes[0]];
+            }
+        }
+
+        // Initialize audio and pitch detection
+        async function initAudio() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                const bufferSize = 1024;
+                const scriptProcessor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+                source.connect(scriptProcessor);
+                scriptProcessor.connect(audioContext.destination);
+
+                const aubioLib = await aubio();
+                const pitchDetector = new aubioLib.Pitch("fcomb", bufferSize * 4, bufferSize, audioContext.sampleRate);
+
+                scriptProcessor.addEventListener('audioprocess', (event) => {
+                    const data = event.inputBuffer.getChannelData(0);
+                    const pitch = pitchDetector.do(data);
+                    const amplitude = Math.max(...data.map(Math.abs));
+                    if (pitch > 80 && pitch < 800 && amplitude > 0.1) {
+                        currentPitch = pitch;
+                        pitchHistory.push(pitch);
+                        if (pitchHistory.length > 15) pitchHistory.shift();
+                        if (pitchHistory.length >= 5) {
+                            let sorted = [...pitchHistory].sort((a, b) => a - b);
+                            smoothedPitch = sorted[Math.floor(sorted.length / 2)];
+                        } else {
+                            smoothedPitch = currentPitch;
+                        }
+                        lastPitch = smoothedPitch;
+                    } else {
+                        currentPitch = null;
+                        smoothedPitch = null;
+                    }
+
+                    if (state === 'playing') {
+                        updateCurrentNote(smoothedPitch);
+                    }
+                });
+
+                if (audioContext.state !== 'running') await audioContext.resume();
+            } catch (err) {
+                alert('Microphone access required! Please allow microphone access.');
+                console.error("Audio error:", err);
+            }
+        }
+
+        // Play a high tone when collecting a coin
+        function playCoinSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.value = 4000;
+            gainNode.gain.value = 0.05;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+
+        // Generate coins at the note's y-position
+        function generateMoreCoins(numSegments) {
+            const startSegment = lastGeneratedSegment + 1;
+            for (let i = startSegment; i < startSegment + numSegments; i++) {
+                const note = sequence[0];
+                const y = getNoteHeight(note);
+                const segmentX = i * segmentWidth;
+                for (let j = 0; j < 3; j++) {
+                    const x = segmentX + (j + 1) * (segmentWidth / 4);
+                    coins.push({ x: x, y: y, collected: false, segment: i });
+                }
+            }
+            lastGeneratedSegment += numSegments;
+        }
+
+        // Update bird position based on pitch
+        function updateBirdPosition() {
+            const pitchToUse = smoothedPitch || lastPitch;
+            if (pitchToUse) {
+                if (state === 'calibrating' || state === 'countdown') {
+                    const minPitch = 80;
+                    const maxPitch = 800;
+                    const normalizedPitch = (pitchToUse - minPitch) / (maxPitch - minPitch);
+                    bird.y = 500 - (normalizedPitch * 400);
+                } else if (state === 'playing' && f0) {
+                    const semitones = 12 * Math.log2(pitchToUse / f0);
+                    const position = semitones / 12;
+                    const targetY = 500 - (400 * position);
+                    bird.y += (targetY - bird.y) * 0.2;
+                }
+                bird.y = Math.max(100, Math.min(500, bird.y));
+            }
+        }
+
+        // Update current note based on pitch
+        function updateCurrentNote(pitch) {
+            if (!pitch || !f0) {
+                currentNote = null;
+                return;
+            }
+            const semitone = 12 * Math.log2(pitch / f0);
+            const closest = raga.semitones.reduce((prev, curr, i) =>
+                Math.abs(curr - semitone) < Math.abs(prev.semitones - semitone) ?
+                { semitones: curr, index: i } : prev,
+                { semitones: raga.semitones[0], index: 0 });
+            currentNote = raga.notes[closest.index];
+        }
+
+        // Calculate median for f0
+        function calculateMedian(arr) {
+            const sorted = arr.slice().sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        }
+
+        // Calculate y-position from note
+        function getNoteHeight(note) {
+            const semitone = raga.semitones[raga.notes.indexOf(note)];
+            return 500 - (400 * (semitone / 12));
+        }
+
+        // Main game loop
+        function gameLoop(timestamp) {
+            if (!lastEffectTime) lastEffectTime = timestamp;
+
+            if (state === 'countdown') {
+                if (!countdownStartTime) {
+                    countdownStartTime = Date.now();
+                    document.getElementById('calibrationMessage').style.display = 'block';
+                }
+                const elapsed = Date.now() - countdownStartTime;
+                const messageDuration = 1000;
+                if (elapsed < messageDuration * countdownMessages.length) {
+                    const index = Math.floor(elapsed / messageDuration);
+                    if (index < countdownMessages.length) {
+                        document.getElementById('calibrationMessage').innerHTML = countdownMessages[index];
+                    }
+                } else {
+                    state = 'calibrating';
+                    countdownStartTime = null;
+                    document.getElementById('calibrationMessage').style.display = 'none';
+                }
+            } else if (state === 'calibrating') {
+                if (!calibrationStartTime) {
+                    calibrationStartTime = Date.now();
+                    pitchSamples = [];
+                    document.getElementById('calibrationMessage').style.display = 'block';
+                    document.getElementById('calibrationMessage').innerHTML = `Please sing a constant pitch for 5 seconds.`;
+                }
+                const elapsed = Date.now() - calibrationStartTime;
+                if (elapsed < calibrationDuration) {
+                    if (currentPitch) pitchSamples.push(currentPitch);
+                    const remaining = Math.ceil((calibrationDuration - elapsed) / 1000);
+                    document.getElementById('calibrationMessage').innerHTML = 
+                        `Please sing a constant pitch for 5 seconds.<br>Time remaining: ${remaining}s`;
+                } else {
+                    f0 = pitchSamples.length > 0 ? calculateMedian(pitchSamples) : 110;
+                    document.getElementById('calibrationMessage').innerHTML = 
+                        `Calibration complete. f0: ${f0.toFixed(1)} Hz.<br>Starting game...`;
+                    setTimeout(() => {
+                        state = 'playing';
+                        document.getElementById('calibrationMessage').style.display = 'none';
+                        generateMoreCoins(20);
+                    }, 2000);
+                }
+            } else if (state === 'playing') {
+                scrollX += speed;
+                const currentSegment = Math.floor((scrollX + bird.x) / segmentWidth);
+
+                if (currentSegment >= lastGeneratedSegment - 5) {
+                    generateMoreCoins(10);
+                }
+
+                if (currentNote && (timestamp - lastEffectTime > effectInterval)) {
+                    const effect = {
+                        note: currentNote,
+                        x: bird.x + (Math.random() - 0.5) * 20,
+                        y: bird.y,
+                        age: 0
+                    };
+                    noteEffects.push(effect);
+                    lastEffectTime = timestamp;
+                }
+
+                noteEffects.forEach(effect => {
+                    effect.y -= 1;
+                    effect.age += 1;
+                });
+                noteEffects = noteEffects.filter(effect => effect.age < 60);
+
+                let dyTolerance;
+                if (gameMode === 'easy') dyTolerance = 40;
+                else if (gameMode === 'normal') dyTolerance = 20;
+                else if (gameMode === 'hard') dyTolerance = 10;
+
+                for (let coin of coins) {
+                    if (!coin.collected) {
+                        const dx = bird.x - (coin.x - scrollX);
+                        const dy = bird.y - coin.y;
+                        if (Math.abs(dx) < 20 && Math.abs(dy) < dyTolerance) {
+                            coin.collected = true;
+                            score++;
+                            birdEating = true;
+                            playCoinSound();
+                            clearTimeout(birdEatTimer);
+                            birdEatTimer = setTimeout(() => birdEating = false, 300);
+                        }
+                    }
+                }
+
+                coins = coins.filter(coin => coin.segment >= currentSegment - 10);
+
+                if (currentSegment > previousSegment && previousSegment >= 0) {
+                    const collected = coins.filter(c => c.segment === previousSegment && c.collected).length;
+                    consecutiveCorrect = collected >= 2 ? consecutiveCorrect + 1 : 0;
+                    if (consecutiveCorrect >= 7 && level < 8) {
+                        state = 'levelComplete';
+                        document.getElementById('calibrationMessage').innerHTML = 
+                            `Level ${level} Completed!<br>Proceeding to Level ${level + 1}`;
+                        document.getElementById('calibrationMessage').style.display = 'block';
+                        setTimeout(() => {
+                            level++;
+                            sequence = getLevelSequence(level);
+                            coins = [];
+                            lastGeneratedSegment = currentSegment - 1;
+                            consecutiveCorrect = 0;
+                            generateMoreCoins(10);
+                            state = 'playing';
+                            document.getElementById('calibrationMessage').style.display = 'none';
+                        }, 3000);
+                    } else if (level >= 8 && consecutiveCorrect >= 7) {
+                        level = 1;
+                        sequence = getLevelSequence(level);
+                        coins = [];
+                        lastGeneratedSegment = currentSegment - 1;
+                        consecutiveCorrect = 0;
+                        generateMoreCoins(10);
+                    }
+                }
+                previousSegment = currentSegment;
+            }
+
+            // Update bird position only in specific states
+            if (state === 'playing' || state === 'calibrating' || state === 'countdown') {
+                updateBirdPosition();
+            }
+
+            draw(timestamp);
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Draw game elements
+        function draw(timestamp) {
+            ctx.clearRect(0, 0, W, H);
+
+            if (state === 'playing') {
+                for (let coin of coins) {
+                    if (!coin.collected) {
+                        const x = coin.x - scrollX;
+                        if (x >= 0 && x <= W) {
+                            ctx.drawImage(coinImg, x - 15, coin.y - 15, 30, 30);
+                        }
+                    }
+                }
+
+                if (noteEffects.length > 0) {
+                    ctx.font = '20px Arial';
+                    ctx.fillStyle = 'black';
+                    noteEffects.forEach(effect => {
+                        ctx.fillText(effect.note, effect.x, effect.y);
+                    });
+                }
+
+                // Draw level and score in top-right corner
+                ctx.save();
+                ctx.font = "bold 20px Arial";
+                ctx.textAlign = "right";
+                ctx.fillStyle = "black";
+                ctx.fillText("Level: " + level, W - 10, 30);
+                ctx.fillText("Score: " + consecutiveCorrect + " / 7", W - 10, 60);
+                ctx.restore();
+            }
+
+            // Flapping bird effect
+            const flapPeriod = 200; // ms for one full flap cycle
+            const flapState = Math.floor(timestamp / flapPeriod) % 2;
+            const birdImage = birdEating ? birdEatImg : (flapState === 0 ? birdImg : birdFlapImg);
+            ctx.drawImage(birdImage, bird.x - 25, bird.y - 25, 50, 50);
+        }
+
+        // Mode selection event listeners
+        document.getElementById('easyBtn').addEventListener('click', () => {
+            gameMode = 'easy';
+            startGame();
+        });
+
+        document.getElementById('normalBtn').addEventListener('click', () => {
+            gameMode = 'normal';
+            startGame();
+        });
+
+        document.getElementById('hardBtn').addEventListener('click', () => {
+            gameMode = 'hard';
+            startGame();
+        });
+
+        // Start game function
+        async function startGame() {
+            // Set notation based on user selection
+            if (selectedNotation === 'indian') {
+                raga.notes = ["Sa", "Re", "Ga", "Ma", "Pa", "Dha", "Ni", "Sa'"];
+            } else {
+                raga.notes = ["Do", "Re", "Mi", "Fa", "Sol", "La", "Si", "Do'"];
+            }
+            sequence = getLevelSequence(level); // Update sequence with new notation
+            document.getElementById('modeSelectionScreen').style.display = 'none';
+            document.getElementById('gameContainer').style.display = 'block';
+            await initAudio();
+            state = 'countdown';
+            requestAnimationFrame(gameLoop);
+        }
+
+        // Load game images
+        document.addEventListener('DOMContentLoaded', () => {
+            Promise.all([
+                new Promise(resolve => birdImg.onload = resolve),
+                new Promise(resolve => birdFlapImg.onload = resolve),
+                new Promise(resolve => birdEatImg.onload = resolve),
+                new Promise(resolve => coinImg.onload = resolve)
+            ]).then(() => {
+                // Images are loaded, wait for mode selection
+            }).catch(err => {
+                console.error("Failed to load images:", err);
+                alert("Please ensure bird.png, birdflap.png, birdeat.png, and coin.png are accessible.");
+            });
+        });
+    </script>
+</body>
+</html>
