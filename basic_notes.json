@@ -1,0 +1,37 @@
+{
+    "name": "Basic Notes",
+    "notation": "indian",
+    "notes": [
+      {"label": "Sa", "semitone": 0},
+      {"label": "Re", "semitone": 2},
+      {"label": "Ga", "semitone": 4},
+      {"label": "Ma", "semitone": 5},
+      {"label": "Pa", "semitone": 7},
+      {"label": "Dha", "semitone": 9},
+      {"label": "Ni", "semitone": 11},
+      {"label": "Sa'", "semitone": 12}
+    ],
+    "levels": [
+      {
+        "level": 1,
+        "sequence": [
+          {"note": "Sa", "coins": 3}
+        ],
+        "requiredConsecutive": 7
+      },
+      {
+        "level": 2,
+        "sequence": [
+          {"note": "Re", "coins": 3}
+        ],
+        "requiredConsecutive": 7
+      },
+      {
+        "level": 3,
+        "sequence": [
+          {"note": "Ga", "coins": 3}
+        ],
+        "requiredConsecutive": 7
+      }
+    ]
+  }

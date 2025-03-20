@@ -1,0 +1,53 @@
+{
+    "name": "Basic Notes with Rests",
+    "notes": [
+        {
+            "label": "Sa",
+            "semitone": 0
+        },
+        {
+            "label": "Re",
+            "semitone": 2
+        },
+        {
+            "label": "Ga",
+            "semitone": 4
+        },
+        {
+            "label": "-",
+            "semitone": -999
+        }
+    ],
+    "levels": [
+        {
+            "name": "Level 1",
+            "sequence": [
+                {
+                    "note": "Sa",
+                    "coins": 2
+                },
+                {
+                    "note": "-",
+                    "coins": 1
+                },
+                {
+                    "note": "Re",
+                    "coins": 2
+                },
+                {
+                    "note": "-",
+                    "coins": 1
+                },
+                {
+                    "note": "Ga",
+                    "coins": 2
+                },
+                {
+                    "note": "-",
+                    "coins": 2
+                }
+            ],
+            "requiredConsecutive": 2
+        }
+    ]
+}
