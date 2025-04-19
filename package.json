@@ -1,6 +1,0 @@
-{
-  "dependencies": {
-    "firebase": "^11.6.0",
-    "nvm": "^0.0.4"
-  }
-}

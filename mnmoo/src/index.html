@@ -120,15 +120,17 @@
         p { color: #555; margin: 10px 0; }
     </style>
     <script type="module">
-        import { auth, authService } from './js/auth.js';
+        import { auth } from './js/auth.js';
 
-        // Change auth.requireAuth() to authService.requireAuth()
-        if (!authService.requireAuth()) {
+        // Require authentication for this page
+        if (!auth.requireAuth()) {
+            // requireAuth will redirect if not authenticated
             throw new Error('Authentication required');
         }
 
+        // Add user info to the UI
         document.addEventListener('DOMContentLoaded', () => {
-            const user = authService.getCurrentUser();
+            const user = auth.getCurrentUser();
             if (user) {
                 document.getElementById('userName').textContent = user.email;
             }
