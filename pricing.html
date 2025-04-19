@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MnMoo Premium Plans</title>
+    <style>
+        /* Basic Reset & Global Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --mnmoo-teal: #1abc9c;
+            --mnmoo-orange: #e67e22; /* Orange like Lumosity's CTA */
+            --mnmoo-orange-dark: #d35400;
+            --bg-main: #f8f9fa;
+            --bg-content: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --text-light: #f8f9fa;
+            --border-color: #dee2e6;
+            --card-shadow: 0 4px 15px rgba(0,0,0,0.07);
+            --popular-bg: #34495e; /* Dark blue-grey for popular plan */
+            --popular-text: #ffffff;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            line-height: 1.5;
+            color: var(--text-primary);
+            background-color: var(--bg-main);
+            display: flex; /* Changed to flex for potential future sidebar */
+            flex-direction: column; /* Stack header and main */
+        }
+        a { text-decoration: none; color: var(--mnmoo-orange); }
+        ul { list-style: none; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+        svg { vertical-align: middle; }
+
+        /* == Copied App Header Styles (Reduced for context) == */
+        .app-header {
+            height: 60px;
+            background-color: var(--bg-content);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            flex-shrink: 0; /* Prevent header from shrinking */
+            position: sticky; /* Make header sticky */
+            top: 0;
+            z-index: 1000;
+        }
+        .header-logo .logo-svg { height: 30px; width: auto; }
+        .user-menu { display: flex; align-items: center; position: relative; }
+        .user-menu .streak-counter { display: flex; align-items: center; margin-right: 15px; font-size: 0.9em; color: var(--text-secondary); background-color: #f1f3f5; padding: 4px 8px; border-radius: 15px; }
+        .user-menu .streak-counter span { margin-right: 5px; color: #fd7e14; }
+        .user-menu-toggle { display: flex; align-items: center; cursor: pointer; padding: 5px; border-radius: 4px; }
+        .user-menu-toggle:hover { background-color: #f1f3f5; }
+        .user-avatar { width: 32px; height: 32px; background-color: var(--mnmoo-teal); border-radius: 50%; margin-right: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px; }
+        .user-name { font-weight: 500; font-size: 0.9em; margin-right: 5px; }
+        .user-menu-toggle svg { width: 12px; height: 12px; fill: var(--text-secondary); }
+        .user-dropdown { display: none; position: absolute; top: calc(100% + 5px); right: 0; background-color: var(--bg-content); border: 1px solid var(--border-color); border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 180px; z-index: 100; overflow: hidden; }
+        .user-menu:hover .user-dropdown, .user-menu-toggle:focus + .user-dropdown, .user-dropdown:hover { display: block; }
+        .user-dropdown ul li a { display: flex; align-items: center; padding: 10px 15px; font-size: 0.9em; color: var(--text-primary); transition: background-color 0.2s ease; }
+        .user-dropdown ul li a:hover { background-color: #f1f3f5; }
+        .user-dropdown ul li a svg { width: 16px; height: 16px; margin-right: 10px; fill: var(--text-secondary); }
+        .arrow-down { fill: currentColor; }
+        /* == End Copied Header Styles == */
+
+
+        /* == Premium Page Specific Styles == */
+        .premium-page { flex-grow: 1; } /* Allow main to fill remaining space */
+
+        /* Plans Section (Top with Background) */
+        .plans-section {
+            padding: 60px 0;
+            text-align: center;
+            /* Simple Gradient Background - replace with image if needed */
+            background: linear-gradient(135deg, #e0f2f7 0%, #b3e0ff 100%);
+            position: relative;
+            overflow: hidden; /* Hide overflow for any pseudo-elements */
+        }
+        /* Optional: Add pseudo-element shapes like Lumosity */
+        .plans-section::before {
+            content: '';
+            position: absolute;
+            bottom: -50px;
+            left: -50px;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            opacity: 0.5;
+        }
+         .plans-section::after {
+            content: '';
+            position: absolute;
+            top: 20%;
+            right: -80px;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 45%;
+            transform: rotate(30deg);
+             opacity: 0.5;
+        }
+
+        .plans-section h2 {
+            font-size: 2.2em;
+            font-weight: 600;
+            margin-bottom: 30px;
+            color: var(--text-primary);
+            position: relative; /* Ensure text is above pseudo-elements */
+            z-index: 1;
+        }
+
+        /* Plan Toggles */
+        .plan-toggles {
+            margin-bottom: 40px;
+            display: inline-flex; /* Group buttons together */
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 5px;
+            border-radius: 30px;
+             position: relative;
+             z-index: 1;
+        }
+        .plan-toggle {
+            padding: 10px 25px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+            background-color: transparent;
+        }
+        .plan-toggle.active {
+            background-color: var(--mnmoo-orange);
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .plan-toggle:not(.active):hover {
+             color: var(--text-primary);
+        }
+
+        /* Pricing Grid */
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 25px;
+            max-width: 1000px; /* Limit width of grid */
+            margin: 0 auto;
+             position: relative;
+             z-index: 1;
+        }
+
+        /* Pricing Card */
+        .pricing-card {
+            background-color: var(--bg-content);
+            border-radius: 12px;
+            padding: 30px 25px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--border-color); /* Subtle border */
+        }
+        .pricing-card:hover {
+             transform: translateY(-5px);
+             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .plan-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .plan-subtitle {
+            font-size: 0.85em;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            min-height: 1.5em; /* Ensure space even if no subtitle */
+        }
+
+        .plan-price {
+            font-size: 1.8em;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: var(--text-primary);
+        }
+        .plan-price .term {
+            font-size: 0.5em;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+        .plan-total {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+        }
+
+        .btn-select {
+            display: inline-block;
+            padding: 12px 30px;
+            border-radius: 25px;
+            background-color: var(--mnmoo-orange);
+            color: white;
+            font-weight: 600;
+            font-size: 1em;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+            margin-bottom: 25px;
+        }
+        .btn-select:hover {
+            background-color: var(--mnmoo-orange-dark);
+            transform: scale(1.03);
+        }
+
+        .plan-features {
+            font-size: 0.8em;
+            color: var(--text-secondary);
+            text-align: left;
+            margin-top: auto; /* Push features to bottom if card height varies */
+        }
+        .plan-features div {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        .plan-features .icon { /* Placeholder icon */
+            width: 16px; height: 16px; margin-right: 8px; color: var(--mnmoo-teal);
+            display: inline-block; line-height: 1; font-weight: bold;
+        }
+
+        /* Popular Plan Styling */
+        .pricing-card.popular {
+            background-color: var(--popular-bg);
+            color: var(--popular-text);
+            border-color: var(--popular-bg);
+            position: relative;
+            transform: scale(1.03); /* Slightly larger */
+        }
+         .pricing-card.popular .plan-title,
+         .pricing-card.popular .plan-subtitle,
+         .pricing-card.popular .plan-price,
+         .pricing-card.popular .plan-total,
+         .pricing-card.popular .plan-features {
+             color: var(--popular-text);
+         }
+          .pricing-card.popular .plan-features .icon {
+             color: var(--mnmoo-teal); /* Keep checkmark teal or make it white? */
+          }
+         .popular-badge {
+             position: absolute;
+             top: 15px;
+             left: 50%;
+             transform: translateX(-50%);
+             font-size: 0.75em;
+             font-weight: 600;
+             color: var(--popular-text);
+             letter-spacing: 0.5px;
+         }
+          .popular-badge span { margin: 0 3px; vertical-align: middle;}
+
+
+        /* Features Section (Bottom White) */
+        .features-section {
+            padding: 60px 0;
+            background-color: var(--bg-content);
+            text-align: center;
+        }
+        .features-section h2 {
+            font-size: 1.8em;
+            font-weight: 600;
+            margin-bottom: 50px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 40px 60px; /* Row and column gap */
+            text-align: left;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start; /* Align icon top */
+            gap: 20px;
+        }
+        .feature-icon { /* Placeholder icon */
+            flex-shrink: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #eaf7f6; /* Light teal bg */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: var(--mnmoo-teal);
+        }
+        .feature-text h3 {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .feature-text p {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+             .pricing-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;}
+             .features-grid { grid-template-columns: 1fr; gap: 30px;} /* Stack features */
+        }
+        @media (max-width: 768px) {
+            .plans-section h2 { font-size: 1.8em; }
+            .features-section h2 { font-size: 1.5em; }
+            .pricing-grid { grid-template-columns: 1fr; max-width: 350px; } /* Stack pricing cards */
+            .pricing-card.popular { transform: scale(1); } /* Reset scale on mobile */
+            .plan-toggles { display: flex; flex-direction: column; gap: 10px; background: none; padding: 0;}
+            .plan-toggle { background-color: rgba(255,255,255,0.7); width: 100%; }
+            .plan-toggle.active { background-color: var(--mnmoo-orange); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- == App Header (Consistent) == -->
+    <header class="app-header">
+        <div class="header-logo">
+            <a href="#" title="MnMoo Dashboard">
+                <svg class="logo-svg" width="100" height="30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40">
+                  <style>
+                    .logo-text-header { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 28px; font-weight: bold; fill: #2c3e50; }
+                    .logo-wave-header { fill: none; stroke: var(--mnmoo-teal); stroke-width: 2; stroke-linecap: round; }
+                  </style>
+                  <text x="5" y="28" class="logo-text-header">MnMoo</text>
+                  <path d="M115 20 Q 120 10, 125 20 T 135 20" class="logo-wave-header" />
+                </svg>
+            </a>
+        </div>
+        <div class="user-menu">
+            <div class="streak-counter">
+                <span>🔥</span> 0
+            </div>
+            <button class="user-menu-toggle" aria-haspopup="true" aria-expanded="false">
+                <div class="user-avatar">U</div>
+                <span class="user-name">username</span>
+                <svg class="arrow-down" viewBox="0 0 16 16" width="1em" height="1em"><path d="M12.6 6L8 10.6 3.4 6 2 7.4l6 6 6-6z"></path></svg>
+            </button>
+             <div class="user-dropdown">
+                 <ul>
+                     <li><a href="#"> <svg><!-- Settings Icon SVG --></svg> <span>Settings</span></a></li>
+                      <li><a href="#"> <svg><!-- Help Icon SVG --></svg> <span>Help</span></a></li>
+                     <li><a href="#"> <svg><!-- Logout Icon SVG --></svg> <span>Log Out</span></a></li>
+                 </ul>
+            </div>
+        </div>
+    </header>
+
+    <!-- == Main Premium Page Content == -->
+    <main class="premium-page">
+
+        <!-- == Plans Section == -->
+        <section class="plans-section">
+            <div class="container">
+                <h2>Which MnMoo Premium Plan works best for you?</h2>
+ 
+                <div class="pricing-grid">
+                    <!-- Monthly Plan -->
+                    <div class="pricing-card">
+                        <div class="plan-title">Monthly</div>
+                        <div class="plan-subtitle">Simple & easy</div>
+                        <div class="plan-price">$11.95<span class="term">/month</span></div>
+                        <div class="plan-total"> </div> <!-- Placeholder for spacing -->
+                        <button class="btn-select">Select</button>
+                        <div class="plan-features">
+                            <div><span class="icon">✔</span> Recurring billing</div>
+                        </div>
+                    </div>
+
+                    <!-- Yearly Plan (Popular) -->
+                    <div class="pricing-card popular">
+                         <div class="popular-badge"><span>★</span> Most Popular 
+                        </div>
+                        <div class="plan-title">Yearly</div>
+                        <div class="plan-subtitle"> </div>
+                        <div class="plan-price">$5.00<span class="term">/month</span></div>
+                        <div class="plan-total">Total: $59.95</div>
+                        <button class="btn-select">Select</button>
+                        <div class="plan-features">
+                            <div><span class="icon">✔</span> Recurring billing</div>
+                            <div><span class="icon">✔</span> 30-day, money-back guarantee</div>
+                        </div>
+                    </div>
+
+                    <!-- Two Year Plan -->
+                     <div class="pricing-card">
+                        <div class="plan-title">Two Year</div>
+                        <div class="plan-subtitle"> </div>
+                        <div class="plan-price">$3.75<span class="term">/month</span></div>
+                        <div class="plan-total">Total: $89.95</div>
+                        <button class="btn-select">Select</button>
+                        <div class="plan-features">
+                             <div><span class="icon">✔</span> Recurring billing</div>
+                             <div><span class="icon">✔</span> 30-day, money-back guarantee</div>
+                        </div>
+                    </div>
+
+                     <!-- Lifetime Plan -->
+                    <div class="pricing-card">
+                        <div class="plan-title">Lifetime</div>
+                        <div class="plan-subtitle">One-time payment</div>
+                        <div class="plan-price">$299.95</div>
+                        <div class="plan-total"> </div>
+                        <button class="btn-select">Select</button>
+                        <div class="plan-features">
+                             <div><span class="icon">✔</span> 30-day, money-back guarantee</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- == Features Section == -->
+        <section class="features-section">
+            <div class="container">
+                 <h2>Enjoy a full pitch training program</h2>
+                 <div class="features-grid">
+                     <div class="feature-item">
+                         <div class="feature-icon">🔑</div>
+                         <div class="feature-text">
+                             <h3>Unlock all pitch exercises</h3>
+                             <p>Access our complete library of exercises targeting accuracy, speed, and flexibility.</p>
+                         </div>
+                     </div>
+                     <div class="feature-item">
+                         <div class="feature-icon">🧠</div>
+                         <div class="feature-text">
+                             <h3>Personalized practice sessions</h3>
+                             <p>Get workout recommendations based on your current skill level and goals.</p>
+                         </div>
+                     </div>
+                     <div class="feature-item">
+                         <div class="feature-icon">📊</div>
+                         <div class="feature-text">
+                             <h3>Detailed progress tracking</h3>
+                             <p>Visualize your improvement over time with detailed stats and insights.</p>
+                         </div>
+                     </div>
+                      <div class="feature-item">
+                         <div class="feature-icon">🎧</div>
+                         <div class="feature-text">
+                             <h3>Advanced ear training</h3>
+                             <p>Develop your musical ear with challenging interval, chord, and melody recognition games.</p>
+                         </div>
+                     </div>
+                 </div>
+            </div>
+        </section>
+
+    </main>
+
+</body>
+</html>
+ 

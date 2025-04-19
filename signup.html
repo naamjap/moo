@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up for MnMoo</title>
+    <style>
+        /* Basic Reset & Global Styles */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f6f8; /* Slightly different background */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        .container { max-width: 450px; margin: 0 auto; padding: 0 20px; } /* Narrower for form */
+        svg { display: inline-block; vertical-align: middle; } /* Align icons */
+
+        /* Header */
+        .signup-header {
+            padding: 25px 0;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo-container {
+            display: inline-block; /* Center the inline-block */
+            height: 40px; /* Match SVG height */
+        }
+
+        /* Main Signup Area */
+        .signup-main {
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            flex-grow: 1; /* Allow main content to take space */
+            margin-bottom: 40px; /* Space before footer */
+        }
+        .signup-main h1 {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        /* --- Social Login Styles --- */
+        .social-logins { margin-bottom: 25px; }
+        .btn-social {
+            display: flex; /* Use flex to align icon and text */
+            align-items: center;
+            justify-content: center; /* Center content */
+            width: 100%;
+            padding: 10px 15px; /* Slightly less padding than main button */
+            margin-bottom: 15px;
+            border-radius: 5px; /* Slightly less rounded */
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+        }
+        .social-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px; /* Space between icon and text */
+        }
+        .btn-social.btn-google {
+            background-color: #fff;
+            border-color: #ddd;
+            color: #444;
+        }
+        .btn-social.btn-google:hover { background-color: #f8f8f8; }
+
+        .btn-social.btn-facebook {
+            background-color: #1877f2;
+            border-color: #1877f2;
+            color: #fff;
+        }
+        .btn-social.btn-facebook:hover { background-color: #166fe5; }
+
+        .btn-social.btn-apple {
+            background-color: #000;
+            border-color: #000;
+            color: #fff;
+        }
+        .btn-social.btn-apple:hover { background-color: #333; }
+        /* --- End Social Login Styles --- */
+
+        /* --- Separator --- */
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #aaa;
+            margin: 25px 0; /* Space around separator */
+            font-size: 0.9em;
+        }
+        .separator::before,
+        .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #eee;
+        }
+        .separator:not(:empty)::before { margin-right: .5em; }
+        .separator:not(:empty)::after { margin-left: .5em; }
+        /* --- End Separator --- */
+
+        /* Form Styles */
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .form-group input[type="email"],
+        .form-group input[type="password"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #1abc9c; /* Teal focus */
+            box-shadow: 0 0 0 2px rgba(26, 188, 156, 0.2);
+        }
+
+        /* Button */
+        .btn {
+            display: inline-block;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px; /* Keep primary action button rounded */
+            cursor: pointer;
+            font-weight: bold;
+            text-align: center;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%; /* Full width button */
+            font-size: 1.1rem;
+            margin-top: 10px; /* Add some space above the main button */
+        }
+        .btn-primary { background-color: #1abc9c; color: #fff; }
+        .btn-primary:hover { background-color: #16a085; transform: translateY(-2px); }
+
+        /* Fine Print */
+        .fine-print {
+            font-size: 0.8rem;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .fine-print a { color: #555; text-decoration: underline; }
+        .fine-print a:hover { color: #1abc9c; }
+
+        /* Login Link */
+        .login-link {
+            text-align: center;
+            margin-top: 25px;
+            font-size: 0.9rem;
+        }
+        .login-link a { color: #1abc9c; font-weight: bold; }
+
+        /* Footer */
+        .site-footer-simple {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.85rem;
+            color: #aaa;
+            margin-top: auto; /* Push footer down */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .signup-main { padding: 30px 20px; }
+            h1 { font-size: 1.6rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header class="signup-header">
+        <div class="logo-container">
+            <!-- Embed SVG Logo -->
+            <a href="landing.html" title="Back to Homepage"> <!-- Link logo back home -->
+                <svg width="150" height="40" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 40">
+                  <style>
+                    .logo-text { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-size: 28px; font-weight: bold; fill: #2c3e50; }
+                    .logo-wave { fill: none; stroke: #1abc9c; stroke-width: 2; stroke-linecap: round; }
+                  </style>
+                  <text x="5" y="28" class="logo-text">MnMoo</text>
+                  <path d="M115 20 Q 120 10, 125 20 T 135 20" class="logo-wave" />
+                </svg>
+            </a>
+        </div>
+    </header>
+
+    <main class="signup-main container">
+        <h1>Create Your MnMoo Account</h1>
+
+        <!-- Social Logins Section -->
+        <div class="social-logins">
+            <button type="button" class="btn-social btn-google" aria-label="Continue with Google" id="googleLogin">
+                <!-- Simple Google G SVG Placeholder -->
+                <svg class="social-icon" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M17.64 9.2c0-.63-.06-1.25-.16-1.84H9.18v3.47h4.74c-.2 1.12-.84 2.08-1.74 2.71v2.26h2.9c1.7-1.56 2.67-3.88 2.67-6.6z"/><path fill="#34A853" d="M9.18 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.53-1.84.85-2.94.85-2.27 0-4.18-1.53-4.87-3.57H1.3v2.34C2.77 16.3 5.7 18 9.18 18z"/><path fill="#FBBC05" d="M4.31 10.84c-.15-.44-.23-.92-.23-1.41s.08-.97.23-1.41V5.68H1.3C.48 7.18 0 8.55 0 10s.48 2.82 1.3 4.32l3.01-2.48z"/><path fill="#EA4335" d="M9.18 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.65.8 11.6 0 9.18 0 5.7 0 2.77 1.7 1.3 4.32l3.01 2.34c.7-2.04 2.6-3.57 4.87-3.58z"/></svg>
+                <span>Continue with Google</span>
+            </button>
+            <button type="button" class="btn-social btn-facebook" aria-label="Continue with Facebook" id="facebookLogin">
+                <!-- Simple Facebook F SVG Placeholder -->
+                <svg class="social-icon" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M18.5 3.5H1.5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h8.5v-7H8v-3h2V9.5C10 7.57 11.57 6 13.5 6H16v3h-1.8c-.66 0-1.2.54-1.2 1.2V11h3l-.5 3h-2.5v7h4.5a1 1 0 0 0 1-1V4.5a1 1 0 0 0-1-1z"/></svg>
+                <span>Continue with Facebook</span>
+            </button>
+            <button type="button" class="btn-social btn-apple" aria-label="Continue with Apple" id="appleLogin">
+                 <!-- Simple Apple Logo SVG Placeholder -->
+                <svg class="social-icon" viewBox="0 0 16 20" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M13.18 10.16c-.05.9-.4 1.75-1.01 2.43-1.01 1.11-2.18 1.66-3.42 1.66-1 0-1.91-.38-2.94-.93-.36-.2-.64-.39-.88-.52-.62-.37-1.4-.56-2.25-.56-.8 0-1.47.31-2.08.89-.61.57-1.01 1.35-1.1 2.24-.04.36.16.68.49.86.2.11.4.16.6.16.62 0 1.17-.3 1.78-.75.4-.3.83-.55 1.36-.55s.9.17 1.33.51c.63.5 1.3.98 2.18.98.88 0 1.7-.45 2.38-1.13.8-.77 1.22-1.77 1.28-2.87.06-.7-.18-1.38-.65-1.98-.6-.73-1.44-1.16-2.4-1.16-.9 0-1.78.37-2.62.93-.29.2-.56.37-.82.5-.5.24-1.07.38-1.66.38-.6 0-1.13-.22-1.6-.6-.6-.48-.9-1.15-.9-1.85 0-1.01.54-1.9 1.4-2.49.9-.6 1.97-.84 3.1-.84.56 0 1.4.11 2.22.4.28.1.56.18.85.18.6 0 1.17-.22 1.66-.66.57-.5.87-1.2.87-1.9 0-.1-.01-.2-.03-.3H10.6c-.9 0-1.75.3-2.48.8-.74.5-1.28 1.2-1.53 2-.48.1-.92.33-1.3.65-.8.69-1.2 1.64-1.2 2.7 0 .6.18 1.18.58 1.7.44.57 1.06.88 1.78.88.46 0 .9-.13 1.3-.38.3-.18.6-.38.96-.54.8-.38 1.68-.6 2.55-.6.9 0 1.85.41 2.64 1.1.75.65 1.15 1.5 1.2 2.44zM11.6.08C10.9-.03 9.6-.03 8.7.53 8.1.9 7.6 1.5 7.3 2.16c.5.2 1.3.43 2.1.43.9 0 1.8-.3 2.6-.8.4-.25.7-.6.8-1.04-.08-.4-.36-.7-.7-.9z"/></svg>
+                <span>Continue with Apple</span>
+            </button>
+        </div>
+
+        <!-- Separator -->
+        <div class="separator">OR</div>
+
+        <!-- Email/Password Form -->
+        <form action="#" method="post"> <!-- Action points nowhere for this example -->
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Create Account</button>
+
+            <p class="fine-print">
+                By clicking "Create Account" or continuing with a social provider, you agree to MnMoo's
+                <a href="#" target="_blank">Terms of Service</a> and
+                <a href="#" target="_blank">Privacy Policy</a>.
+            </p>
+        </form>
+
+        <p class="login-link">
+            Already have an account? <a href="login.html">Log In</a> <!-- Point to login page/modal -->
+        </p>
+    </main>
+
+    <footer class="site-footer-simple">
+        © 2023 MnMoo
+    </footer>
+
+    <script type="module">
+        import { authService } from './js/auth.js';
+
+        // Social login handlers
+        document.getElementById('googleLogin').addEventListener('click', async () => {
+            try {
+                await authService.loginWithGoogle();
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('Google login error:', error);
+                alert('Google login failed. Please try again.');
+            }
+        });
+
+        document.getElementById('facebookLogin').addEventListener('click', async () => {
+            try {
+                await authService.loginWithFacebook();
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('Facebook login error:', error);
+                alert('Facebook login failed. Please try again.');
+            }
+        });
+
+        document.getElementById('appleLogin').addEventListener('click', async () => {
+            try {
+                await authService.loginWithApple();
+                window.location.href = '/index.html';
+            } catch (error) {
+                console.error('Apple login error:', error);
+                alert('Apple login failed. Please try again.');
+            }
+        });
+
+        // Handle form submission
+        document.querySelector('form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const success = await authService.signup(email, password);
+                if (success) {
+                    window.location.href = '/index.html';
+                } else {
+                    alert('Signup failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Signup error:', error);
+                alert('An error occurred during signup: ' + error.message);
+            }
+        });
+
+        // Redirect if already logged in
+        if (authService.isLoggedIn()) {
+            window.location.href = '/index.html';
+        }
+    </script>
+
+</body>
+</html>

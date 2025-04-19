@@ -193,9 +193,10 @@
         let currentAmplitude = 0;
         let previousSegment = -1;
         let oscillator = null;
-        let lfo = null; // Low-frequency oscillator for vibrato
         let gainNode = null;
         let previousK = -1;
+
+
 
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
@@ -268,70 +269,25 @@
             document.getElementById('packSelectionScreen').style.display = 'flex';
         }
 
-        // Updated playTone function with vibrato modulation
         function playTone(semitone) {
-            if (audioContext.state !== 'running') {
-                audioContext.resume().then(() => {
-                    startOscillator(semitone);
-                });
-            } else {
-                startOscillator(semitone);
-            }
-        }
-
-        function startOscillator(semitone) {
-            // Stop any existing oscillators
             if (oscillator) {
                 oscillator.stop();
-                oscillator = null;
             }
-            if (lfo) {
-                lfo.stop();
-                lfo = null;
-            }
-
-            // Create the main oscillator for the note
             oscillator = audioContext.createOscillator();
-            oscillator.type = 'sine'; // You can change to 'triangle' or 'sawtooth' for different effects
+            gainNode = audioContext.createGain();
+            oscillator.type = 'sine';
             const frequency = f0 * Math.pow(2, semitone / 12);
             oscillator.frequency.value = frequency;
-
-            // Create an LFO for vibrato
-            lfo = audioContext.createOscillator();
-            lfo.frequency.value = 5; // Vibrato rate (5 Hz)
-
-            // Create a gain node for vibrato depth
-            const lfoGain = audioContext.createGain();
-            lfoGain.gain.value = 5; // Vibrato depth (5 Hz deviation)
-
-            // Connect LFO -> lfoGain -> main oscillator's frequency
-            lfo.connect(lfoGain);
-            lfoGain.connect(oscillator.frequency);
-
-            // Create a gain node for volume control
-            gainNode = audioContext.createGain();
-            gainNode.gain.value = 0.5; // Adjust volume (0.5 is louder)
-
-            // Connect main oscillator -> gainNode -> destination
+            gainNode.gain.value = 0.1; // Adjust volume (0.1 is quiet)
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
-
-            // Start both oscillators
-            lfo.start();
             oscillator.start();
+            }
 
-            console.log(`Playing tone: ${frequency} Hz with vibrato (rate: 5 Hz, depth: 5 Hz)`);
-        }
-
-        // Updated stopTone function to stop both oscillators
-        function stopTone() {
+            function stopTone() {
             if (oscillator) {
                 oscillator.stop();
                 oscillator = null;
-            }
-            if (lfo) {
-                lfo.stop();
-                lfo = null;
             }
             if (gainNode) {
                 gainNode.disconnect();
@@ -347,29 +303,29 @@
                 const pack = await response.json();
                 const noteToIndex = {};
                 pack.notes.forEach((note, index) => {
-                    noteToIndex[note.label] = index;
+                noteToIndex[note.label] = index;
                 });
                 pack.levels.forEach(level => {
-                    level.sequence = level.sequence.map(item => ({
-                        noteIndex: noteToIndex[item.note],
-                        coins: item.coins,
-                        upcomingNoteIndex: null // Initialize
-                    }));
-                    if (!level.requiredConsecutive) level.requiredConsecutive = 1;
+                level.sequence = level.sequence.map(item => ({
+                    noteIndex: noteToIndex[item.note],
+                    coins: item.coins,
+                    upcomingNoteIndex: null // Initialize
+                }));
+                if (!level.requiredConsecutive) level.requiredConsecutive = 1;
                 });
                 // Add upcomingNoteIndex for "#" notes
                 pack.levels.forEach(level => {
-                    level.sequence.forEach((item, index) => {
-                        if (pack.notes[item.noteIndex].label === "#") {
-                            let k = (index + 1) % level.sequence.length;
-                            while (pack.notes[level.sequence[k].noteIndex].label === "#" || 
-                                   pack.notes[level.sequence[k].noteIndex].label === "-") {
-                                k = (k + 1) % level.sequence.length;
-                                if (k === index) break; // Prevent infinite loop
-                            }
-                            item.upcomingNoteIndex = level.sequence[k].noteIndex;
-                        }
-                    });
+                level.sequence.forEach((item, index) => {
+                    if (pack.notes[item.noteIndex].label === "#") {
+                    let k = (index + 1) % level.sequence.length;
+                    while (pack.notes[level.sequence[k].noteIndex].label === "#" || 
+                            pack.notes[level.sequence[k].noteIndex].label === "-") {
+                        k = (k + 1) % level.sequence.length;
+                        if (k === index) break; // Prevent infinite loop
+                    }
+                    item.upcomingNoteIndex = level.sequence[k].noteIndex;
+                    }
+                });
                 });
                 return pack;
             } catch (error) {
@@ -449,7 +405,7 @@
             for (let k = 0; k < sequence.length; k++) {
                 accumulated += sequence[k].coins;
                 if (cycleIndex < accumulated) {
-                    return k;
+                return k;
                 }
             }
             return sequence.length - 1;
@@ -563,181 +519,183 @@
         // Main game loop
         let lastTimestamp = null;
 
+       
+
         function gameLoop(timestamp) {
-            // Calculate deltaTime for smooth animations
-            if (!lastTimestamp) lastTimestamp = timestamp;
-            const deltaTime = (timestamp - lastTimestamp) / 1000;
-            lastTimestamp = timestamp;
+        // Calculate deltaTime for smooth animations
+        if (!lastTimestamp) lastTimestamp = timestamp;
+        const deltaTime = (timestamp - lastTimestamp) / 1000;
+        lastTimestamp = timestamp;
 
-            // Handle 'countdown' state
-            if (state === 'countdown') {
-                if (!countdownStartTime) {
-                    countdownStartTime = Date.now();
-                    document.getElementById('calibrationMessage').style.display = 'block';
+        // Handle 'countdown' state
+        if (state === 'countdown') {
+            if (!countdownStartTime) {
+            countdownStartTime = Date.now();
+            document.getElementById('calibrationMessage').style.display = 'block';
+            }
+            const elapsed = Date.now() - countdownStartTime;
+            const messageDuration = 1000;
+            if (elapsed < messageDuration * countdownMessages.length) {
+            const index = Math.floor(elapsed / messageDuration);
+            if (index < countdownMessages.length) {
+                document.getElementById('calibrationMessage').innerHTML = countdownMessages[index];
+            }
+            } else {
+            state = 'calibrating';
+            countdownStartTime = null;
+            document.getElementById('calibrationMessage').style.display = 'none';
+            }
+        } 
+        // Handle 'calibrating' state
+        else if (state === 'calibrating') {
+            if (!calibrationStartTime) {
+            calibrationStartTime = Date.now();
+            pitchSamples = [];
+            document.getElementById('calibrationMessage').style.display = 'block';
+            document.getElementById('calibrationMessage').innerHTML = `Please sing a constant pitch for 5 seconds.`;
+            }
+            const elapsed = Date.now() - calibrationStartTime;
+            if (elapsed < calibrationDuration) {
+            if (currentPitch) pitchSamples.push(currentPitch);
+            const remaining = Math.ceil((calibrationDuration - elapsed) / 1000);
+            document.getElementById('calibrationMessage').innerHTML = 
+                `Please sing a constant pitch for 5 seconds.<br>Time remaining: ${remaining}s`;
+            } else {
+            f0 = pitchSamples.length > 0 ? calculateMedian(pitchSamples) : 110;
+            document.getElementById('calibrationMessage').innerHTML = 
+                `Calibration complete. f0: ${f0.toFixed(1)} Hz.<br>Starting game...`;
+            setTimeout(() => {
+                state = 'playing';
+                document.getElementById('calibrationMessage').style.display = 'none';
+                generateMoreCoins(20);
+            }, 2000);
+            }
+        } 
+        // Handle 'playing' state
+        else if (state === 'playing') {
+            scrollX += speed;
+            const currentSegment = Math.floor((scrollX + bird.x) / segmentWidth);
+
+            // Calculate totalCycle for the current level
+            const sequence = currentPack.levels[currentLevelIndex].sequence;
+            const totalCycle = sequence.reduce((sum, item) => sum + item.coins, 0);
+
+            // Generate more coins when nearing the end of generated segments
+            if (currentSegment >= lastGeneratedSegment - 5) {
+            generateMoreCoins(10);
+            }
+
+            // Tone playback logic
+            const k = getSequenceIndexForSegment(currentSegment);
+            if (k !== previousK) {
+            stopTone();
+            if (currentPack.notes[sequence[k].noteIndex].label === "#" && 
+                sequence[k].upcomingNoteIndex !== null) {
+                playTone(currentPack.notes[sequence[k].upcomingNoteIndex].semitone);
+            }
+            previousK = k;
+            }
+
+            // Update note effects (visual feedback)
+            if (noteEffects.length > 0) {
+            noteEffects.forEach(effect => {
+                effect.y -= 1;
+                effect.age += 1;
+            });
+            noteEffects = noteEffects.filter(effect => effect.age < 60);
+            }
+
+            // Set collision tolerance based on game mode
+            let dyTolerance;
+            if (gameMode === 'easy') dyTolerance = 40;
+            else if (gameMode === 'normal') dyTolerance = 20;
+            else if (gameMode === 'hard') dyTolerance = 10;
+
+            // Check for coin collisions
+            for (let coin of coins) {
+            if (!coin.collected) {
+                const dx = bird.x - (coin.x - scrollX);
+                const dy = bird.y - coin.y;
+                if (Math.abs(dx) < 20 && Math.abs(dy) < dyTolerance) {
+                coin.collected = true;
+                score++;
+                birdEating = true;
+                playCoinSound();
+                clearTimeout(birdEatTimer);
+                birdEatTimer = setTimeout(() => birdEating = false, 300);
                 }
-                const elapsed = Date.now() - countdownStartTime;
-                const messageDuration = 1000;
-                if (elapsed < messageDuration * countdownMessages.length) {
-                    const index = Math.floor(elapsed / messageDuration);
-                    if (index < countdownMessages.length) {
-                        document.getElementById('calibrationMessage').innerHTML = countdownMessages[index];
-                    }
+            }
+            }
+
+            // Remove coins from old segments
+            coins = coins.filter(coin => coin.segment >= currentSegment - 10);
+
+            // Update sequence progression
+            if (currentSegment > previousSegment && previousSegment >= 0) {
+            const hasCoins = coins.some(c => c.segment === previousSegment);
+            if (hasCoins) {
+                const collected = coins.filter(c => c.segment === previousSegment && c.collected).length;
+                if (collected >= 1) {
+                currentSequenceIndex++;
                 } else {
-                    state = 'calibrating';
-                    countdownStartTime = null;
-                    document.getElementById('calibrationMessage').style.display = 'none';
+                consecutiveSequences = 0;
+                currentSequenceIndex = 0;
                 }
-            } 
-            // Handle 'calibrating' state
-            else if (state === 'calibrating') {
-                if (!calibrationStartTime) {
-                    calibrationStartTime = Date.now();
-                    pitchSamples = [];
-                    document.getElementById('calibrationMessage').style.display = 'block';
-                    document.getElementById('calibrationMessage').innerHTML = `Please sing a constant pitch for 5 seconds.`;
-                }
-                const elapsed = Date.now() - calibrationStartTime;
-                if (elapsed < calibrationDuration) {
-                    if (currentPitch) pitchSamples.push(currentPitch);
-                    const remaining = Math.ceil((calibrationDuration - elapsed) / 1000);
-                    document.getElementById('calibrationMessage').innerHTML = 
-                        `Please sing a constant pitch for 5 seconds.<br>Time remaining: ${remaining}s`;
-                } else {
-                    f0 = pitchSamples.length > 0 ? calculateMedian(pitchSamples) : 110;
-                    document.getElementById('calibrationMessage').innerHTML = 
-                        `Calibration complete. f0: ${f0.toFixed(1)} Hz.<br>Starting game...`;
-                    setTimeout(() => {
-                        state = 'playing';
-                        document.getElementById('calibrationMessage').style.display = 'none';
-                        generateMoreCoins(20);
-                    }, 2000);
-                }
-            } 
-            // Handle 'playing' state
-            else if (state === 'playing') {
-                scrollX += speed;
-                const currentSegment = Math.floor((scrollX + bird.x) / segmentWidth);
-
-                // Calculate totalCycle for the current level
-                const sequence = currentPack.levels[currentLevelIndex].sequence;
-                const totalCycle = sequence.reduce((sum, item) => sum + item.coins, 0);
-
-                // Generate more coins when nearing the end of generated segments
-                if (currentSegment >= lastGeneratedSegment - 5) {
+            } else {
+                // Rest segment
+                currentSequenceIndex++;
+            }
+            if (currentSequenceIndex >= totalCycle) {
+                consecutiveSequences++;
+                console.log(consecutiveSequences);
+                currentSequenceIndex = 0;
+                if (consecutiveSequences >= currentPack.levels[currentLevelIndex].requiredConsecutive) {
+                state = 'levelComplete';
+                document.getElementById('calibrationMessage').innerHTML = 
+                    `Level ${currentLevelIndex + 1} Completed!<br>Proceeding to Level ${currentLevelIndex + 2}`;
+                document.getElementById('calibrationMessage').style.display = 'block';
+                setTimeout(() => {
+                    currentLevelIndex++;
+                    if (currentLevelIndex < currentPack.levels.length) {
+                    coins = [];
+                    lastGeneratedSegment = currentSegment - 1;
+                    consecutiveSequences = 0;
+                    currentSequenceIndex = 0;
                     generateMoreCoins(10);
-                }
-
-                // Tone playback logic
-                const k = getSequenceIndexForSegment(currentSegment);
-                if (k !== previousK) {
-                    stopTone();
-                    if (currentPack.notes[sequence[k].noteIndex].label === "#" && 
-                        sequence[k].upcomingNoteIndex !== null) {
-                        playTone(currentPack.notes[sequence[k].upcomingNoteIndex].semitone);
-                    }
-                    previousK = k;
-                }
-
-                // Update note effects (visual feedback)
-                if (noteEffects.length > 0) {
-                    noteEffects.forEach(effect => {
-                        effect.y -= 1;
-                        effect.age += 1;
-                    });
-                    noteEffects = noteEffects.filter(effect => effect.age < 60);
-                }
-
-                // Set collision tolerance based on game mode
-                let dyTolerance;
-                if (gameMode === 'easy') dyTolerance = 40;
-                else if (gameMode === 'normal') dyTolerance = 20;
-                else if (gameMode === 'hard') dyTolerance = 10;
-
-                // Check for coin collisions
-                for (let coin of coins) {
-                    if (!coin.collected) {
-                        const dx = bird.x - (coin.x - scrollX);
-                        const dy = bird.y - coin.y;
-                        if (Math.abs(dx) < 20 && Math.abs(dy) < dyTolerance) {
-                            coin.collected = true;
-                            score++;
-                            birdEating = true;
-                            playCoinSound();
-                            clearTimeout(birdEatTimer);
-                            birdEatTimer = setTimeout(() => birdEating = false, 300);
-                        }
-                    }
-                }
-
-                // Remove coins from old segments
-                coins = coins.filter(coin => coin.segment >= currentSegment - 10);
-
-                // Update sequence progression
-                if (currentSegment > previousSegment && previousSegment >= 0) {
-                    const hasCoins = coins.some(c => c.segment === previousSegment);
-                    if (hasCoins) {
-                        const collected = coins.filter(c => c.segment === previousSegment && c.collected).length;
-                        if (collected >= 1) {
-                            currentSequenceIndex++;
-                        } else {
-                            consecutiveSequences = 0;
-                            currentSequenceIndex = 0;
-                        }
+                    document.getElementById('levelNumber').textContent = currentLevelIndex + 1;
+                    state = 'playing';
+                    document.getElementById('calibrationMessage').style.display = 'none';
                     } else {
-                        // Rest segment
-                        currentSequenceIndex++;
+                    state = 'packComplete';
+                    document.getElementById('calibrationMessage').innerHTML = 
+                        `Congratulations! Pack completed!<br><button id="closeMessage">Close</button>`;
+                    document.getElementById('calibrationMessage').style.display = 'block';
+                    document.getElementById('closeMessage').addEventListener('click', () => {
+                        document.getElementById('calibrationMessage').style.display = 'none';
+                        document.getElementById('gameContainer').style.display = 'none';
+                        document.getElementById('packSelectionScreen').style.display = 'flex';
+                    });
                     }
-                    if (currentSequenceIndex >= totalCycle) {
-                        consecutiveSequences++;
-                        console.log(consecutiveSequences);
-                        currentSequenceIndex = 0;
-                        if (consecutiveSequences >= currentPack.levels[currentLevelIndex].requiredConsecutive) {
-                            state = 'levelComplete';
-                            document.getElementById('calibrationMessage').innerHTML = 
-                                `Level ${currentLevelIndex + 1} Completed!<br>Proceeding to Level ${currentLevelIndex + 2}`;
-                            document.getElementById('calibrationMessage').style.display = 'block';
-                            setTimeout(() => {
-                                currentLevelIndex++;
-                                if (currentLevelIndex < currentPack.levels.length) {
-                                    coins = [];
-                                    lastGeneratedSegment = currentSegment - 1;
-                                    consecutiveSequences = 0;
-                                    currentSequenceIndex = 0;
-                                    generateMoreCoins(10);
-                                    document.getElementById('levelNumber').textContent = currentLevelIndex + 1;
-                                    state = 'playing';
-                                    document.getElementById('calibrationMessage').style.display = 'none';
-                                } else {
-                                    state = 'packComplete';
-                                    document.getElementById('calibrationMessage').innerHTML = 
-                                        `Congratulations! Pack completed!<br><button id="closeMessage">Close</button>`;
-                                    document.getElementById('calibrationMessage').style.display = 'block';
-                                    document.getElementById('closeMessage').addEventListener('click', () => {
-                                        document.getElementById('calibrationMessage').style.display = 'none';
-                                        document.getElementById('gameContainer').style.display = 'none';
-                                        document.getElementById('packSelectionScreen').style.display = 'flex';
-                                    });
-                                }
-                            }, 3000);
-                        }
-                    }
+                }, 3000);
                 }
-                previousSegment = currentSegment;
-            } 
-            // Stop tone in non-playing states
-            else {
-                stopTone();
             }
-
-            // Update bird position in active states
-            if (state === 'playing' || state === 'calibrating' || state === 'countdown') {
-                updateBirdPosition();
             }
+            previousSegment = currentSegment;
+        } 
+        // Stop tone in non-playing states
+        else {
+            stopTone();
+        }
 
-            // Render the game
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            draw(timestamp);
-            requestAnimationFrame(gameLoop);
+        // Update bird position in active states
+        if (state === 'playing' || state === 'calibrating' || state === 'countdown') {
+            updateBirdPosition();
+        }
+
+        // Render the game
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        draw(timestamp);
+        requestAnimationFrame(gameLoop);
         }
 
         // Draw game elements
@@ -796,7 +754,7 @@
             ctx.drawImage(birdImage, bird.x - 25, bird.y - 25, 50, 50);
         }
 
-        // Helper function to get the note index for a segment
+        // Add this helper function to get the note index for a segment
         function getCurrentNoteIndexForSegment(segment) {
             const sequence = currentPack.levels[currentLevelIndex].sequence;
             const totalCoins = sequence.reduce((sum, item) => sum + item.coins, 0);

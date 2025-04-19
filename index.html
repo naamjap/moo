@@ -119,9 +119,32 @@
         h2 { color: #0277bd; margin-bottom: 15px; }
         p { color: #555; margin: 10px 0; }
     </style>
+    <script type="module">
+        import { auth } from './js/auth.js';
+
+        // Require authentication for this page
+        if (!auth.requireAuth()) {
+            // requireAuth will redirect if not authenticated
+            throw new Error('Authentication required');
+        }
+
+        // Add user info to the UI
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = auth.getCurrentUser();
+            if (user) {
+                document.getElementById('userName').textContent = user.email;
+            }
+        });
+    </script>
     <script src="https://unpkg.com/aubiojs"></script>
 </head>
 <body>
+    <!-- Add this to the header section -->
+    <div class="user-menu">
+        <span id="userName"></span>
+        <button onclick="auth.logout()">Logout</button>
+    </div>
+
     <!-- Mode Selection Screen -->
     <div id="modeSelectionScreen">
         <img id="title" src="mnmoo.png" alt="Mnmoo">
