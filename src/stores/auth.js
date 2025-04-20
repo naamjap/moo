@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { auth } from 'src/boot/firebase' // Add this import
 import { 
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,

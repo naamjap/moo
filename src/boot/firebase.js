@@ -1,3 +1,4 @@
+import { boot } from 'quasar/wrappers' // Add this import
 import { initializeApp } from 'firebase/app'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getAnalytics } from "firebase/analytics"
@@ -17,15 +18,15 @@ const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const analytics = getAnalytics(app)
 
-// Add auth state listener
-export default ({ app }) => {
+// Wrap the export in boot
+export default boot(({ app }) => {
   const authStore = useAuthStore()
   
   onAuthStateChanged(auth, (user) => {
     authStore.user = user
     console.log('Auth state changed:', user ? 'logged in' : 'logged out')
   })
-}
+})
 
 export { auth, analytics }
 
