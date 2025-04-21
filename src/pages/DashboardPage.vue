@@ -1,184 +1,131 @@
 <template>
   <q-page class="q-pa-md">
     <!-- User Profile Header -->
-    <div class="row items-center justify-between q-mb-lg bg-primary text-white q-pa-md rounded-borders">
-      <div class="row items-center">
-        <q-avatar size="72px" class="q-mr-md">
-          <img :src="userPhotoUrl" :alt="userName">
-        </q-avatar>
-        <div>
-          <div class="text-h5">{{ userName }}</div>
-          <div class="text-subtitle2">{{ userEmail }}</div>
-          <q-badge v-if="!isPremium" color="warning" class="q-mt-sm">
-            Free Account
-          </q-badge>
-          <q-badge v-else color="positive" class="q-mt-sm">
-            Premium Member
-          </q-badge>
-        </div>
+    <div class="row items-center justify-between q-mb-lg">
+      <div class="col">
+        <div class="text-h4 text-weight-bold q-mb-sm">mnmoo Games</div>
+        <div class="text-subtitle1">Saturday, April 19</div>
       </div>
-      <div class="row items-center">
-        <q-btn
-          v-if="!isPremium"
-          color="accent"
-          label="Upgrade to Premium"
-          class="q-mr-md"
-          @click="showUpgradeDialog = true"
-        />
-        <q-btn
-          flat
-          round
-          icon="logout"
-          @click="handleLogout"
-        >
+      <div class="col-auto">
+        <q-btn flat round icon="settings" size="sm" class="q-mr-sm">
+          <q-tooltip>Settings</q-tooltip>
+        </q-btn>
+        <q-btn flat round icon="help_outline" size="sm" class="q-mr-sm">
+          <q-tooltip>Help</q-tooltip>
+        </q-btn>
+        <q-btn flat round icon="logout" size="sm" @click="handleLogout">
           <q-tooltip>Logout</q-tooltip>
         </q-btn>
       </div>
     </div>
 
-    <!-- Premium Upgrade Dialog -->
-    <q-dialog v-model="showUpgradeDialog">
-      <q-card style="min-width: 350px">
-        <q-card-section class="text-center">
-          <div class="text-h6">Upgrade to Premium</div>
-          <div class="text-subtitle2">Unlock all features and games!</div>
-        </q-card-section>
+    <!-- Upgrade Banner -->
+    <q-banner class="bg-amber-1 q-mb-md rounded-borders">
+      <template v-slot:avatar>
+        <q-icon name="workspace_premium" color="amber-8" />
+      </template>
+      Upgrade to Access All 40+ Games. Play any game, any time, with Premium.
+    </q-banner>
 
-        <q-card-section>
+    <!-- Main Content -->
+    <div class="row">
+      <div class="col-12 col-md-9">
+        <!-- Today's Games -->
+        <div class="q-mb-lg">
+          <h2 class="text-h6 text-weight-bold q-mb-md">Today's Games</h2>
           <div class="row q-col-gutter-md">
-            <div v-for="plan in pricingPlans" :key="plan.id" class="col-12 col-sm-4">
-              <q-card class="pricing-card">
-                <q-card-section class="text-center">
-                  <div class="text-h6">{{ plan.name }}</div>
-                  <div class="text-h4 text-primary q-mt-sm">{{ plan.price }}</div>
-                  <div class="text-caption">{{ plan.period }}</div>
+            <div v-for="game in todaysGames" :key="game.id" class="col-6 col-sm-3 col-md-3 col-lg-2">
+              <q-card class="game-card">
+                <q-img :src="game.image" :ratio="1" class="game-image">
+                  <div class="absolute-top-left q-pa-xs">
+                    <q-badge v-if="game.premium && !isPremium" color="accent">Premium</q-badge>
+                    <q-badge v-if="game.new" color="positive">New</q-badge>
+                  </div>
+                </q-img>
+                <q-card-section class="q-pa-sm">
+                  <div class="text-subtitle2 text-weight-bold">{{ game.title }}</div>
+                  <div class="text-caption text-grey-7">{{ game.category }}</div>
                 </q-card-section>
-                <q-card-section>
-                  <q-list dense>
-                    <q-item v-for="feature in plan.features" :key="feature">
-                      <q-item-section avatar>
-                        <q-icon name="check" color="positive" />
-                      </q-item-section>
-                      <q-item-section>{{ feature }}</q-item-section>
-                    </q-item>
-                  </q-list>
-                </q-card-section>
-                <q-card-actions align="center">
-                  <q-btn color="primary" :label="'Choose ' + plan.name" @click="upgradeToPremium(plan)" />
-                </q-card-actions>
               </q-card>
             </div>
           </div>
-        </q-card-section>
-      </q-card>
-    </q-dialog>
-
-    <!-- Stats Cards -->
-    <div class="row q-col-gutter-md q-mb-lg">
-      <div class="col-12 col-sm-4">
-        <q-card class="stats-card">
-          <q-card-section>
-            <div class="text-h6">Practice Sessions</div>
-            <div class="text-h3 text-primary">{{ stats.practiceSessions }}</div>
-            <div class="text-caption text-grey-7">This month</div>
-          </q-card-section>
-        </q-card>
-      </div>
-      <div class="col-12 col-sm-4">
-        <q-card class="stats-card">
-          <q-card-section>
-            <div class="text-h6">Accuracy Rate</div>
-            <div class="text-h3 text-positive">{{ stats.accuracyRate }}</div>
-            <div class="text-caption text-grey-7">Average</div>
-          </q-card-section>
-        </q-card>
-      </div>
-      <div class="col-12 col-sm-4">
-        <q-card class="stats-card">
-          <q-card-section>
-            <div class="text-h6">Time Practiced</div>
-            <div class="text-h3 text-accent">{{ stats.timePracticed }}</div>
-            <div class="text-caption text-grey-7">Total</div>
-          </q-card-section>
-        </q-card>
-      </div>
-    </div>
-
-    <!-- Game Categories -->
-    <div class="row items-center justify-between q-mb-md">
-      <h2 class="text-h5 text-weight-bold">Training Games</h2>
-      <q-input
-        v-model="searchQuery"
-        dense
-        outlined
-        placeholder="Search games..."
-        class="col-12 col-sm-4"
-      >
-        <template v-slot:append>
-          <q-icon name="search" />
-        </template>
-      </q-input>
-    </div>
-
-    <!-- Category Tabs -->
-    <q-tabs
-      v-model="activeTab"
-      dense
-      class="text-grey q-mb-md"
-      active-color="primary"
-      indicator-color="primary"
-      align="justify"
-      narrow-indicator
-    >
-      <q-tab name="all" label="All Games" />
-      <q-tab 
-        v-for="category in categories" 
-        :key="category.id" 
-        :name="category.id" 
-        :label="category.name" 
-      />
-    </q-tabs>
-
-    <!-- Games Grid -->
-    <div class="row q-col-gutter-md">
-      <template v-for="game in filteredGames" :key="game.id">
-        <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-          <q-card class="game-card">
-            <q-img
-              :src="game.image"
-              :ratio="16/9"
-              class="game-image"
-            >
-              <div class="absolute-top-right q-pa-xs">
-                <q-badge v-if="game.premium && !isPremium" color="accent">
-                  Premium
-                </q-badge>
-                <q-badge v-if="game.new" color="positive">
-                  New
-                </q-badge>
-              </div>
-            </q-img>
-
-            <q-card-section>
-              <div class="text-h6">{{ game.title }}</div>
-              <div class="text-caption text-grey-7">{{ game.description }}</div>
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn
-                flat
-                color="primary"
-                :label="game.premium && !isPremium ? 'Upgrade to Play' : 'Play'"
-                @click="game.premium && !isPremium ? showUpgradeDialog = true : launchGame(game)"
-              />
-            </q-card-actions>
-
-            <div v-if="game.premium && !isPremium" class="premium-overlay">
-              <q-icon name="lock" size="2rem" />
-            </div>
-          </q-card>
         </div>
-      </template>
+
+        <!-- By Area/Badge Tabs -->
+        <q-tabs
+          v-model="selectedTab"
+          dense
+          class="text-grey q-mb-md"
+          active-color="primary"
+          indicator-color="primary"
+          align="left"
+          narrow-indicator
+        >
+          <q-tab name="area" label="By Area" />
+          <q-tab name="badge" label="By Badge" />
+        </q-tabs>
+
+        <q-tab-panels v-model="selectedTab" animated>
+          <q-tab-panel name="area">
+            <!-- Area Games -->
+            <div class="row q-col-gutter-md">
+              <div v-for="game in games" :key="game.id" class="col-6 col-sm-3 col-md-2 col-lg-1">
+                <q-card class="game-card">
+                  <q-img :src="game.image" :ratio="1" class="game-image">
+                    <div class="absolute-top-left q-pa-xs">
+                      <q-badge v-if="game.premium && !isPremium" color="accent">Premium</q-badge>
+                      <q-badge v-if="game.new" color="positive">New</q-badge>
+                    </div>
+                  </q-img>
+                  <q-card-section class="q-pa-sm">
+                    <div class="text-subtitle2 text-weight-bold">{{ game.title }}</div>
+                    <div class="text-caption text-grey-7">{{ game.category }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+          </q-tab-panel>
+
+          <q-tab-panel name="badge">
+            <!-- Badge Games -->
+            <div class="row q-col-gutter-md">
+              <div v-for="game in games" :key="game.id" class="col-6 col-sm-3 col-md-2 col-lg-1">
+                <q-card class="game-card">
+                  <q-img :src="game.image" :ratio="1" class="game-image">
+                    <div class="absolute-top-left q-pa-xs">
+                      <q-badge v-if="game.premium && !isPremium" color="accent">Premium</q-badge>
+                      <q-badge v-if="game.new" color="positive">New</q-badge>
+                    </div>
+                  </q-img>
+                  <q-card-section class="q-pa-sm">
+                    <div class="text-subtitle2 text-weight-bold">{{ game.title }}</div>
+                    <div class="text-caption text-grey-7">{{ game.category }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+          </q-tab-panel>
+        </q-tab-panels>
+      </div>
+
+      <!-- Streak Section (Right Sidebar) -->
+      <div class="col-12 col-md-3">
+        <q-card class="streak-card">
+          <q-card-section>
+            <div class="text-h6">Your Streaks</div>
+            <div class="row items-center justify-between q-mt-sm">
+              <div>Current streak: 0 days</div>
+              <div>Best streak: 0 days</div>
+            </div>
+            <div class="row q-mt-sm">
+              <div v-for="day in ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']" :key="day" class="col">
+                <div class="text-center">{{ day }}</div>
+                <q-icon name="circle" color="grey" size="sm" />
+              </div>
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
   </q-page>
 </template>
@@ -202,16 +149,7 @@ const userPhotoUrl = computed(() =>
 )
 
 const showUpgradeDialog = ref(false)
-const searchQuery = ref('')
-const activeTab = ref('all')
 const isPremium = ref(false) // This should come from your user data
-
-// Mock stats data
-const stats = ref({
-  practiceSessions: 12,
-  accuracyRate: '85%',
-  timePracticed: '5h'
-})
 
 // Pricing plans
 const pricingPlans = [
@@ -264,38 +202,379 @@ const categories = [
   { id: 'sight', name: 'Sight Reading', icon: 'remove_red_eye' }
 ]
 
-// Games data structure
+// Games data structure (example)
 const games = ref([
   {
     id: 1,
     title: 'Perfect Pitch Trainer',
     description: 'Master pitch recognition through fun exercises',
     category: 'pitch',
-    image: 'path-to-image',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 2,
+    title: 'Rhythm Master',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 3,
+    title: 'Ear Training Pro',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 4,
+    title: 'Music Theory 101',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 5,
+    title: 'Sight Reading Challenge',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 6,
+    title: 'Perfect Pitch Trainer 2',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 7,
+    title: 'Rhythm Master 2',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 8,
+    title: 'Ear Training Pro 2',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 9,
+    title: 'Music Theory 101 2',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 10,
+    title: 'Sight Reading Challenge 2',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 11,
+    title: 'Perfect Pitch Trainer 3',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 12,
+    title: 'Rhythm Master 3',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 13,
+    title: 'Ear Training Pro 3',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 14,
+    title: 'Music Theory 101 3',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 15,
+    title: 'Sight Reading Challenge 3',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 16,
+    title: 'Perfect Pitch Trainer 4',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 17,
+    title: 'Rhythm Master 4',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 18,
+    title: 'Ear Training Pro 4',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 19,
+    title: 'Music Theory 101 4',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 20,
+    title: 'Sight Reading Challenge 4',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 21,
+    title: 'Perfect Pitch Trainer 5',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 22,
+    title: 'Rhythm Master 5',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 23,
+    title: 'Ear Training Pro 5',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 24,
+    title: 'Music Theory 101 5',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 25,
+    title: 'Sight Reading Challenge 5',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 26,
+    title: 'Perfect Pitch Trainer 6',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 27,
+    title: 'Rhythm Master 6',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 28,
+    title: 'Ear Training Pro 6',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 29,
+    title: 'Music Theory 101 6',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 30,
+    title: 'Sight Reading Challenge 6',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 31,
+    title: 'Perfect Pitch Trainer 7',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 32,
+    title: 'Rhythm Master 7',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 33,
+    title: 'Ear Training Pro 7',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 34,
+    title: 'Music Theory 101 7',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 35,
+    title: 'Sight Reading Challenge 7',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 36,
+    title: 'Perfect Pitch Trainer 8',
+    description: 'Master pitch recognition through fun exercises',
+    category: 'pitch',
+    image: 'https://cdn.quasar.dev/img/parallax2.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 37,
+    title: 'Rhythm Master 8',
+    description: 'Improve your rhythm skills',
+    category: 'rhythm',
+    image: 'https://cdn.quasar.dev/img/parallax1.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 38,
+    title: 'Ear Training Pro 8',
+    description: 'Train your ear to recognize intervals',
+    category: 'ear',
+    image: 'https://cdn.quasar.dev/img/parallax3.jpg',
+    premium: true,
+    new: true
+  },
+  {
+    id: 39,
+    title: 'Music Theory 101 8',
+    description: 'Learn the basics of music theory',
+    category: 'theory',
+    image: 'https://cdn.quasar.dev/img/parallax4.jpg',
+    premium: false,
+    new: false
+  },
+  {
+    id: 40,
+    title: 'Sight Reading Challenge 8',
+    description: 'Improve your sight reading skills',
+    category: 'sight',
+    image: 'https://cdn.quasar.dev/img/parallax5.jpg',
     premium: true,
     new: true
   }
 ])
 
-// Computed for filtered games
-const filteredGames = computed(() => {
-  let filtered = games.value
+// Computed property for Today's Games
+const todaysGames = computed(() => games.value.slice(0, 4))
 
-  if (activeTab.value !== 'all') {
-    filtered = filtered.filter(game => game.category === activeTab.value)
-  }
+// Function to get games by category
+const getGamesByCategory = (categoryId) => {
+  return games.value.filter(game => game.category === categoryId)
+}
 
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(game => 
-      game.title.toLowerCase().includes(query) ||
-      game.description.toLowerCase().includes(query)
-    )
-  }
-
-  return filtered
-})
-
+// Methods
 const upgradeToPremium = (plan) => {
   $q.notify({
     type: 'info',
@@ -325,28 +604,49 @@ const launchGame = (game) => {
     message: `Launching ${game.title}...`
   })
 }
+
+// Add/modify these refs:
+const searchQuery = ref('')
+const selectedCategory = ref('all')
+const stats = ref({
+  practiceSessions: 12,
+  accuracyRate: '85%',
+  timePracticed: '5h'
+})
+
+const selectedTab = ref('area')
+
+// Add this computed prop:
+const filteredGames = computed(() => {
+  let result = games.value
+  
+  if (selectedCategory.value !== 'all') {
+    result = result.filter(game => game.category === selectedCategory.value)
+  }
+  
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    result = result.filter(game => 
+      game.title.toLowerCase().includes(query) || 
+      game.description.toLowerCase().includes(query)
+    )
+  }
+  
+  return result
+})
 </script>
 
 <style scoped>
-.stats-card {
-  transition: transform 0.3s ease;
-}
-
-.stats-card:hover {
-  transform: translateY(-4px);
-}
-
-.q-card {
-  border-radius: 8px;
-}
-
 .game-card {
-  cursor: pointer;
-  transition: transform 0.2s ease;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
-.game-card:hover {
-  transform: scale(1.03);
+.game-image {
+  background-size: cover;
+  background-position: center;
+  height: 80px; /* Reduced height for smaller images */
 }
 
 .premium-overlay {
@@ -363,20 +663,17 @@ const launchGame = (game) => {
   border-radius: 8px;
 }
 
-.pricing-card {
+.stats-card {
   height: 100%;
   transition: transform 0.2s ease;
 }
 
-.pricing-card:hover {
+.stats-card:hover {
   transform: translateY(-4px);
 }
 
-.game-image {
-  transition: transform 0.3s ease;
-}
-
-.game-card:hover .game-image {
-  transform: scale(1.05);
+.streak-card {
+  background-color: #f5f5f5;
+  border-radius: 8px;
 }
 </style>

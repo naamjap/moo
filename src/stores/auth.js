@@ -52,6 +52,17 @@ export const useAuthStore = defineStore('auth', {
         this.user = userCredential.user
         return { success: true }
       } catch (error) {
+        console.error('Signup error:', error)
+        
+        // Handle Firebase auth errors
+        if (error.code === 'auth/email-already-in-use') {
+          return { 
+            success: false, 
+            reason: error.code,
+            message: 'This email is already registered'
+          }
+        }
+        
         const errorMessage = this.getSignupErrorMessage(error.code, error.message)
         this.error = errorMessage
         return { 
@@ -153,14 +164,16 @@ export const useAuthStore = defineStore('auth', {
     getSignupErrorMessage(errorCode, defaultMessage) {
       const errorMessages = {
         'auth/email-already-in-use': 'This email is already registered',
+        'EMAIL_EXISTS': 'This email is already registered',
         'auth/invalid-email': 'Please enter a valid email address',
         'auth/operation-not-allowed': 'Email/password accounts are not enabled. Please contact support.',
         'auth/weak-password': 'Password should be at least 6 characters',
         'WEAK_PASSWORD': 'Password should be at least 6 characters'
       }
       
-      if (defaultMessage?.includes('WEAK_PASSWORD')) {
-        return errorMessages['WEAK_PASSWORD']
+      // Check both code and message for EMAIL_EXISTS
+      if (defaultMessage?.includes('EMAIL_EXISTS') || errorCode === 'EMAIL_EXISTS') {
+        return errorMessages['EMAIL_EXISTS']
       }
       
       return errorMessages[errorCode] || defaultMessage || 'Failed to create account'

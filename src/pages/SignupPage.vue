@@ -112,38 +112,61 @@ const loading = ref(false)
 const errorMessage = ref('')
 
 const onSubmit = async () => {
-  loading.value = true
-  errorMessage.value = ''
+  try {
+    loading.value = true
+    errorMessage.value = ''
 
-  const result = await authStore.signup(email.value, password.value)
-  
-  if (!result.success) {
-    errorMessage.value = result.message
-    if (result.reason === 'auth/weak-password' || result.reason === 'WEAK_PASSWORD') {
+    const result = await authStore.signup(email.value, password.value)
+    
+    if (!result.success) {
       password.value = '' // Clear password field
-      $q.notify({
-        type: 'negative',
-        message: 'Password too weak',
-        caption: 'Please use at least 6 characters',
-        position: 'top'
-      })
+      errorMessage.value = result.message || 'Signup failed'
+      
+      // Handle EMAIL_EXISTS specifically
+      if (result.reason === 'auth/email-already-in-use' || result.reason === 'EMAIL_EXISTS') {
+        $q.notify({
+          type: 'negative',
+          message: 'This email is already registered',
+          position: 'top',
+          timeout: 2500
+        })
+      } else if (result.reason === 'auth/weak-password' || result.reason === 'WEAK_PASSWORD') {
+        $q.notify({
+          type: 'negative',
+          message: 'Password too weak',
+          caption: 'Please use at least 6 characters',
+          position: 'top',
+          timeout: 2500
+        })
+      } else {
+        $q.notify({
+          type: 'negative',
+          message: result.message || 'Signup failed',
+          position: 'top',
+          timeout: 2500
+        })
+      }
     } else {
       $q.notify({
-        type: 'negative',
-        message: result.message,
-        position: 'top'
+        type: 'positive',
+        message: 'Account created successfully! Please check your email for verification.',
+        position: 'top',
+        timeout: 2500
       })
+      router.push('/verify-email')
     }
-  } else {
+  } catch (error) {
+    console.error('Signup error:', error)
+    errorMessage.value = 'An unexpected error occurred'
     $q.notify({
-      type: 'positive',
-      message: 'Account created successfully! Please check your email for verification.',
-      position: 'top'
+      type: 'negative',
+      message: 'An unexpected error occurred during signup',
+      position: 'top',
+      timeout: 2500
     })
-    router.push('/verify-email')
+  } finally {
+    loading.value = false
   }
-  
-  loading.value = false
 }
 
 const loginWithGoogle = async () => {
