@@ -6,7 +6,7 @@ import { useAuthStore } from 'src/stores/auth'
 
 const firebaseConfig = {
     apiKey: "AIzaSyDk0cEYLi873DuUuXVdz_S2kqXKa6R38pI",
-    authDomain: "mnmoo-86085.firebaseapp.com",
+    authDomain: "mnmoo.com",
     projectId: "mnmoo-86085",
     storageBucket: "mnmoo-86085.firebasestorage.app",
     messagingSenderId: "10678058131",
