@@ -1,4 +1,4 @@
-import{Q as s}from"./QPage-BwektLnX.js";import{_ as a}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{s as l,t as i,v as c,B as o,A as u,F as d,G as m,D as y}from"./index-DvILlL2w.js";import"./render-C8JR9mId.js";const p={class:"content-width q-mx-auto"},f={class:"text-body1 q-mt-lg"},h={class:"text-h5 text-weight-bold q-mb-md"},g=["innerHTML"],v={__name:"PrivacyPolicy",setup(w){const r=[{title:"1. Information We Collect",content:`
+import{Q as s}from"./QPage-Djr-2ONe.js";import{_ as a}from"./_plugin-vue_export-helper-DlAUqK2U.js";import{s as l,t as i,v as c,B as o,A as u,F as d,G as m,D as y}from"./index-BwzuUoxJ.js";import"./render-C8JR9mId.js";const p={class:"content-width q-mx-auto"},f={class:"text-body1 q-mt-lg"},h={class:"text-h5 text-weight-bold q-mb-md"},g=["innerHTML"],v={__name:"PrivacyPolicy",setup(w){const r=[{title:"1. Information We Collect",content:`
       <p>We collect the following types of information:</p>
       <ul>
         <li><strong>Information You Provide:</strong> We collect information you provide directly to us, such as your name, email address, and any content you submit to our Services.</li>

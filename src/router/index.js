@@ -27,8 +27,21 @@ export default defineRouter(function (/* { store, ssrContext } */) {
     history: createHistory(process.env.VUE_ROUTER_BASE)
   })
 
-  Router.beforeEach((to, from, next) => {
+  Router.beforeEach(async (to, from, next) => {
     const authStore = useAuthStore()
+    
+    // Wait for auth to initialize before proceeding
+    if (!authStore.isInitialized) {
+      await new Promise(resolve => {
+        const unsubscribe = authStore.$subscribe((mutation, state) => {
+          if (state.isInitialized) {
+            unsubscribe()
+            resolve()
+          }
+        })
+      })
+    }
+
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
     const isAuthRoute = to.path === '/login' || to.path === '/signup'
     const isHomePage = to.path === '/'

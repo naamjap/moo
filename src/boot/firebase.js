@@ -24,6 +24,7 @@ export default boot(({ app }) => {
   
   onAuthStateChanged(auth, (user) => {
     authStore.user = user
+    authStore.isInitialized = true  // Add this line
     console.log('Auth state changed:', user ? 'logged in' : 'logged out')
   })
 })
