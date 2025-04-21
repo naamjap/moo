@@ -5,7 +5,7 @@
       <div class="text-subtitle1 text-grey-8">Effective Date: December 1, 2024</div>
 
       <div class="text-body1 q-mt-lg">
-        <p>Your privacy is important to us. This Privacy Policy explains how [Your Company Name] ("we," "us," or "our") collects, uses, and shares information about you when you use our website, applications, and related services (collectively, the "Services").</p>
+        <p>Your privacy is important to us. This Privacy Policy explains how Omaha Technologies ("mnmoo", "we," "us," or "our") collects, uses, and shares information about you when you use our website, applications, and related services (collectively, the "Services").</p>
 
         <div v-for="(section, index) in sections" :key="index" class="q-mb-xl">
           <h2 class="text-h5 text-weight-bold q-mb-md">{{ section.title }}</h2>
@@ -90,7 +90,7 @@ const sections = [
   {
     title: "8. Contact Us",
     content: `
-      <p>If you have any questions or concerns about this Privacy Policy, please contact us at [Your Contact Information].</p>
+      <p>If you have any questions or concerns about this Privacy Policy, please contact us at contact@mnmoo.com.</p>
     `
   }
 ]

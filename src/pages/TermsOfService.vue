@@ -9,12 +9,11 @@
 
         <div class="company-info q-pa-md bg-grey-2 rounded-borders q-mb-lg">
           <p class="text-weight-bold">About MnMoo</p>
-          <p>MnMoo is a service provided by [Your Company Name], a company registered in [Your Country].</p>
+          <p>MnMoo is a service provided by Omaha Technologies, a company registered in Canada.</p>
           <p>Registration Details:</p>
-          <p>Company Name: [Your Company Name]</p>
-          <p>NIPC: [Your NIPC]</p>
-          <p>Address: [Your Address]</p>
-          <p>In these Terms, "[Your Company Name]" may also be referred to as "we," "us," or "our."</p>
+          <p> Omaha Technologies</p>
+           
+          <p>In these Terms, "Omaha Technologies" may also be referred to as "MnMoo", "we," "us," or "our."</p>
         </div>
 
         <p>MnMoo is an online platform designed to help you improve your singing skills. We offer a variety of interactive tools and resources, including pitch training, ear training, and personalized feedback. Whether you're an individual learner or part of an educational institution, MnMoo is here to support your musical journey.</p>
@@ -75,7 +74,7 @@ const sections = [
   {
     title: "6. Intellectual Property",
     content: `
-      <p>MnMoo and its original content, features, and functionality are owned by [Your Company Name] and are protected by intellectual property laws. You may not use our trademarks, logos, or content without our permission.</p>
+      <p>MnMoo and its original content, features, and functionality are owned by MnMoo and are protected by intellectual property laws. You may not use our trademarks, logos, or content without our permission.</p>
     `
   },
   {
@@ -93,13 +92,13 @@ const sections = [
   {
     title: "9. Limitation of Liability",
     content: `
-      <p>To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of MnMoo.</p>
+      <p>To the fullest extent permitted by law, Omaha Technologies shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of MnMoo.</p>
     `
   },
   {
     title: "10. Governing Law",
     content: `
-      <p>These Terms shall be governed by the laws of [Your Jurisdiction], without regard to its conflict of law principles.</p>
+      <p>These Terms shall be governed by the laws of Canada, without regard to its conflict of law principles.</p>
     `
   },
   {
@@ -111,7 +110,7 @@ const sections = [
   {
     title: "12. Contact Us",
     content: `
-      <p>If you have any questions or concerns about these Terms, please contact us at [Your Contact Information].</p>
+      <p>If you have any questions or concerns about these Terms, please contact us at contact@mnmo.com.</p>
     `
   },
   {
@@ -129,13 +128,13 @@ const sections = [
   {
     title: "15. Liability Exclusion",
     content: `
-      <p>To the fullest extent permitted by law, [Your Company Name] shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of MnMoo.</p>
+      <p>To the fullest extent permitted by law, MnMoo shall not be liable for any indirect, incidental, special, consequential, or punitive damages arising out of or related to your use of MnMoo.</p>
     `
   },
   {
     title: "16. Indemnification",
     content: `
-      <p>You agree to indemnify and hold harmless [Your Company Name], its affiliates, and their respective officers, directors, employees, and agents from any claims, liabilities, damages, losses, or expenses, including reasonable attorneys' fees, arising out of or related to your use of MnMoo or your violation of these Terms.</p>
+      <p>You agree to indemnify and hold harmless MnMoo, its affiliates, and their respective officers, directors, employees, and agents from any claims, liabilities, damages, losses, or expenses, including reasonable attorneys' fees, arising out of or related to your use of MnMoo or your violation of these Terms.</p>
     `
   },
   {
